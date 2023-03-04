@@ -11,10 +11,15 @@ export class Task {
   name: string;
   @Column({ name: 'Task_strDescription' })
   description: string;
-  @Column({ name: 'Task_dtmCreated' })
+  @Column({ name: 'Task_dtmCreated', type: 'date' })
   created: string;
-  @Column({ name: 'Task_dtmFinished' })
+  @Column({ name: 'Task_dtmFinished', type: 'date', nullable: true })
   finished: string;
-  @Column({ name: 'Task_enumStatus' })
+  @Column({
+    name: 'Task_enumStatus',
+    type: 'enum',
+    enum: TaskStatus,
+    default: TaskStatus.STARTED,
+  })
   status: TaskStatus;
 }
