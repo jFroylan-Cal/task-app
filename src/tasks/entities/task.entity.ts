@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { TaskStatus } from 'src/common/enums/task-status.enum';
 
-@Entity({ name: 'tbl_Tasks' })
+@Entity({ name: 'Tasks' })
 export class Task {
   @PrimaryGeneratedColumn({ name: 'Task_intId' })
   id: number;
@@ -22,4 +22,6 @@ export class Task {
     default: TaskStatus.STARTED,
   })
   status: TaskStatus;
+  @Column({name: 'Task_boolWatched', default: false, type: 'bool'})
+  watched: boolean; 
 }
