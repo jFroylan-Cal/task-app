@@ -8,7 +8,7 @@ export class AuthController {
 
   @Post('signin')
   create(@Body() createUserDto: CreateUserDto) {
-    return this.authService.create(createUserDto);
+    return this.authService.singIn(createUserDto);
   }
 
   @Post('login')

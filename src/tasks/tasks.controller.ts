@@ -2,6 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { ValidRoles } from '../auth/enums/valid-roles.enum';
+
 
 @Controller('tasks')
 export class TasksController {
@@ -12,10 +15,10 @@ export class TasksController {
     return this.tasksService.create(createTaskDto);
   }
 
-  @Get()
-  findAll() {
-    return this.tasksService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.tasksService.findAll();
+  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
