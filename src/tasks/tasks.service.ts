@@ -6,15 +6,16 @@ import { Like, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
+import { async } from 'rxjs';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
-  ) {}
+  ) { }
 
-  create(createTaskDto: CreateTaskDto) {
+  async create(createTaskDto: CreateTaskDto) {
     const { name, description, status } = createTaskDto;
     let plate: string;
     let dateCreated: string;
@@ -27,7 +28,7 @@ export class TasksService {
       created: dateCreated,
       status: status,
     });
-    this.taskRepository.save(task);
+    await this.taskRepository.save(task);
     return task;
   }
 
@@ -35,10 +36,10 @@ export class TasksService {
     return this.taskRepository.findBy({ id });
   }
 
-  findTask(searchDto: SearchDto) {
+  async findTask(searchDto: SearchDto) {
     const { name, description } = searchDto;
     if (name) {
-      const task = this.taskRepository.find({
+      const task = await this.taskRepository.find({
         where: {
           name: Like(`%${name}%`),
         },
@@ -47,7 +48,7 @@ export class TasksService {
     }
 
     if (description) {
-      const task = this.taskRepository.find({
+      const task = await this.taskRepository.find({
         where: {
           name: Like(`%${description}%`),
         },
@@ -56,8 +57,10 @@ export class TasksService {
     }
   }
 
-  update(id: number, updateTaskDto: UpdateTaskDto) {
-    return `This action updates a #${id} task`;
+  async update(id: number, updateTaskDto: UpdateTaskDto) {
+    const { description,name,status } = updateTaskDto;
+    const task = await this.taskRepository.findBy({ id });
+  
   }
 
   remove(id: number) {
