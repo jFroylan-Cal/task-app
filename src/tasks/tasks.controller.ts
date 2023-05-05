@@ -4,6 +4,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { ValidRoles } from '../auth/enums/valid-roles.enum';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 
 @Controller('tasks')
@@ -12,27 +14,29 @@ export class TasksController {
 
   @Post()
   @Auth()
-  create(@Body() createTaskDto: CreateTaskDto) {
+  async create(@Body() createTaskDto: CreateTaskDto, @GetUser() user: User) {
     return this.tasksService.create(createTaskDto);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.tasksService.findAll();
-  // }
+  @Get()
+  async findAll() {
+    const [task, total] = await this.tasksService.findAllTasks();
+    return { task, total };
+  }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Auth()
+  async findOne(@Param('id') id: string) {
     return this.tasksService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
+  async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
     return this.tasksService.update(+id, updateTaskDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.tasksService.remove(+id);
   }
 }

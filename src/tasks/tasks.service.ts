@@ -2,18 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SearchDto } from 'src/common/dto/search.dto';
 import { PlateGenerator } from 'src/common/utilities/plate.generator';
-import { Like, Repository } from 'typeorm';
+import { DataSource, Like, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
-import { async } from 'rxjs';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
-  ) { }
+    private readonly dataSourse: DataSource,
+  ) {}
 
   async create(createTaskDto: CreateTaskDto) {
     const { name, description, status } = createTaskDto;
@@ -57,13 +57,35 @@ export class TasksService {
     }
   }
 
+  async findAllTasks() {
+    return this.taskRepository.findAndCount();
+  }
+
   async update(id: number, updateTaskDto: UpdateTaskDto) {
-    const { description,name,status } = updateTaskDto;
-    const task = await this.taskRepository.findBy({ id });
-  
+    const { ...toUpdate } = updateTaskDto;
+    const task = await this.taskRepository.preload({
+      id,
+      ...toUpdate,
+    });
+    const trans = await this.startTransaction();
+    try {  
+      await trans.manager.save(task);
+      await trans.commitTransaction();
+      await trans.release();
+    } catch (error) {
+      await trans.rollbackTransaction();
+      await trans.release();
+    }
   }
 
   remove(id: number) {
     return `This action removes a #${id} task`;
+  }
+
+  async startTransaction() {
+    const queryRunner = this.dataSourse.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    return queryRunner;
   }
 }
