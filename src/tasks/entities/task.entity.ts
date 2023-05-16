@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Status } from '../../common/enums/status.enum';
+import { User } from '../../auth/entities/user.entity';
 
 @Entity({ name: 'Tasks' })
 export class Task {
@@ -31,4 +32,7 @@ export class Task {
 
   @Column({ name: 'Task_boolWatched', default: false, type: 'bool' })
   watched: boolean;
+
+  @ManyToOne(()=> User,(user) => user.tasks, {eager: true})
+  user: User;
 }

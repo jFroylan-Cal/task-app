@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsOptional, IsString, Matches, Min } from 'class-validator';
-import { TaskStatus } from '../enums/status.enum';
+import { Status } from '../enums/status.enum';
 
 export class SearchDto {
   @IsString()
@@ -29,8 +29,8 @@ export class SearchDto {
   //TODO Add fromDate and toDate
 
   @IsOptional()
-  @IsEnum(TaskStatus)
-  status: TaskStatus;
+  @IsEnum(Status)
+  status: Status;
 
   @IsOptional()
   @IsBoolean()

@@ -18,10 +18,10 @@ import { TasksService } from './tasks.service';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  @Post()
+  @Post('create')
   @Auth()
   async create(@Body() createTaskDto: CreateTaskDto, @GetUser() user: User) {
-    return this.tasksService.create(createTaskDto);
+    return this.tasksService.create(createTaskDto, user);
   }
 
   @Get()
@@ -39,6 +39,11 @@ export class TasksController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
     return this.tasksService.update(+id, updateTaskDto);
+  }
+
+  @Patch('watch/:id')
+  async watch(@Param('id') id: string) {
+    return this.tasksService.watch(+id);
   }
 
   @Delete(':id')

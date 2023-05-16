@@ -3,8 +3,10 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Task } from '../../tasks/entities/task.entity';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -31,6 +33,9 @@ export class User {
 
   @Column({ name: 'User_strRol', type: 'text', array: true, default: ['user'] })
   roles: string[];
+
+  @OneToMany(() => Task, (task) => task.user, {cascade: true, nullable: true})
+  tasks: Task[];
 
   @BeforeInsert()
   checkFieldBeforeInsert() {

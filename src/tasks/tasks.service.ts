@@ -6,16 +6,17 @@ import { DataSource, Like, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
+import { User } from '../auth/entities/user.entity';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
-    private readonly dataSourse: DataSource,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async create(createTaskDto: CreateTaskDto) {
+  async create(createTaskDto: CreateTaskDto, user: User) {
     const { name, description, status } = createTaskDto;
     let plate: string;
     let dateCreated: string;
@@ -27,6 +28,7 @@ export class TasksService {
       description: description,
       created: dateCreated,
       status: status,
+      user: user,
     });
     await this.taskRepository.save(task);
     return task;
@@ -68,7 +70,7 @@ export class TasksService {
       ...toUpdate,
     });
     const trans = await this.startTransaction();
-    try {  
+    try {
       await trans.manager.save(task);
       await trans.commitTransaction();
       await trans.release();
@@ -82,8 +84,22 @@ export class TasksService {
     return `This action removes a #${id} task`;
   }
 
+  async watch(id: number) {
+    const task = await this.taskRepository.preload({ id });
+    const trans = await this.startTransaction();
+    try {
+      task.watched = true;
+      await trans.manager.save(task);
+      await trans.commitTransaction();
+      await trans.release();
+    } catch (error) {
+      await trans.rollbackTransaction();
+      await trans.release();
+    }
+  }
+
   async startTransaction() {
-    const queryRunner = this.dataSourse.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     return queryRunner;
