@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsOptional, IsString, Matches, Min } from 'class-validator';
-import { TaskStatus } from '../enums/task-status.enum';
+import { TaskStatus } from '../enums/status.enum';
 
 export class SearchDto {
   @IsString()

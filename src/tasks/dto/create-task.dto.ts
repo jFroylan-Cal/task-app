@@ -1,7 +1,11 @@
-import { TaskStatus } from "../../common/enums/task-status.enum";
+import { IsEnum, IsString, MinLength } from 'class-validator';
+import { Status } from '../../common/enums/status.enum';
 
 export class CreateTaskDto {
-    name: string;
-    description: string;
-    status: TaskStatus
+  @IsString()
+  @MinLength(3)
+  description: string;
+
+  @IsEnum(Status)
+  status: Status;
 }
