@@ -26,8 +26,6 @@ export class SearchDto {
   })
   finished: string;
 
-  //TODO Add fromDate and toDate
-
   @IsOptional()
   @IsEnum(Status)
   status: Status;

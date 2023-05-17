@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SearchDto } from 'src/common/dto/search.dto';
-import { PlateGenerator } from 'src/common/utilities/plate.generator';
 import { DataSource, Like, Repository } from 'typeorm';
+import { User } from '../auth/entities/user.entity';
+import { SearchDto } from '../common/dto/search.dto';
+import { PlateGenerator } from '../common/utilities/plate.generator';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
-import { User } from '../auth/entities/user.entity';
+import { finished } from 'stream';
 
 @Injectable()
 export class TasksService {
@@ -39,9 +40,10 @@ export class TasksService {
   }
 
   async findTask(searchDto: SearchDto) {
-    const { name, description } = searchDto;
+    const { name, description, created, finished, status, watched} = searchDto;
+    //TODO create a method for de search
     if (name) {
-      const task = await this.taskRepository.find({
+      const task = await this.taskRepository.findAndCount({
         where: {
           name: Like(`%${name}%`),
         },
@@ -50,25 +52,64 @@ export class TasksService {
     }
 
     if (description) {
-      const task = await this.taskRepository.find({
+      const task = await this.taskRepository.findAndCount({
         where: {
-          name: Like(`%${description}%`),
+          description: Like(`%${description}%`),
+        },
+      });
+      return task;
+    }
+
+    if (created) {
+      const task = await this.taskRepository.findAndCount({
+        where: {
+          created: created,
+        },
+      });
+      return task;
+    }
+
+    if(finished){
+      const task = await this.taskRepository.findAndCount({
+        where: {
+          finished: finished,
+        },
+      });
+      return task;
+    }
+
+    if (status) {
+      const task = await this.taskRepository.findAndCount({
+        where: {
+          status: status,
+        },
+      });
+      return task;
+    }
+
+    if (watched) {
+      const task = await this.taskRepository.findAndCount({
+        where: {
+          watched: true,
         },
       });
       return task;
     }
   }
 
-  async findAllTasks() {
-    return this.taskRepository.findAndCount();
-  }
-
   async update(id: number, updateTaskDto: UpdateTaskDto) {
-    const { ...toUpdate } = updateTaskDto;
+    const { name, description, status, finished } = updateTaskDto;
     const task = await this.taskRepository.preload({
       id,
-      ...toUpdate,
+      name,
+      description,
+      status,
     });
+    if (finished) {
+      let dateFinished: string;
+      dateFinished = new Date().toISOString();
+      task.finished = dateFinished;
+    }
     const trans = await this.startTransaction();
     try {
       await trans.manager.save(task);

@@ -6,10 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  Put,
 } from '@nestjs/common';
-import { GetUser } from 'src/auth/decorators/get-user.decorator';
-import { User } from 'src/auth/entities/user.entity';
 import { Auth } from '../auth/decorators/auth.decorator';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { User } from '../auth/entities/user.entity';
+import { SearchDto } from '../common/dto/search.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
@@ -25,8 +27,8 @@ export class TasksController {
   }
 
   @Get()
-  async findAll() {
-    const [task, total] = await this.tasksService.findAllTasks();
+  async findAll(@Body() search: SearchDto) {
+    const [task, total] = await this.tasksService.findTask(search);
     return { task, total };
   }
 
@@ -36,7 +38,7 @@ export class TasksController {
     return this.tasksService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
     return this.tasksService.update(+id, updateTaskDto);
   }

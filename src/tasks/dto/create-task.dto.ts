@@ -1,4 +1,4 @@
-import { IsEnum, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsEnum, IsString, MinLength } from 'class-validator';
 import { Status } from '../../common/enums/status.enum';
 
 export class CreateTaskDto {
@@ -12,4 +12,7 @@ export class CreateTaskDto {
 
   @IsEnum(Status)
   status: Status;
+
+  @IsBoolean()
+  finished: boolean;
 }
