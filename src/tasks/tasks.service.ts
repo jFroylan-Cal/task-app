@@ -7,7 +7,6 @@ import { PlateGenerator } from '../common/utilities/plate.generator';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
-import { finished } from 'stream';
 
 @Injectable()
 export class TasksService {
@@ -40,22 +39,17 @@ export class TasksService {
   }
 
   async findTask(searchDto: SearchDto) {
-    const { name, description, created, finished, status, watched} = searchDto;
-    //TODO create a method for de search
-    if (name) {
+    const { search, created, finished, status, watched } = searchDto;
+    if (search) {
       const task = await this.taskRepository.findAndCount({
-        where: {
-          name: Like(`%${name}%`),
-        },
-      });
-      return task;
-    }
-
-    if (description) {
-      const task = await this.taskRepository.findAndCount({
-        where: {
-          description: Like(`%${description}%`),
-        },
+        where: [
+          {
+            name: Like(`%${search}%`),
+          },
+          {
+            description: Like(`%${search}%`),
+          },
+        ],
       });
       return task;
     }
@@ -69,7 +63,7 @@ export class TasksService {
       return task;
     }
 
-    if(finished){
+    if (finished) {
       const task = await this.taskRepository.findAndCount({
         where: {
           finished: finished,
@@ -105,13 +99,11 @@ export class TasksService {
       description,
       status,
     });
-    if (finished) {
-      let dateFinished: string;
-      dateFinished = new Date().toISOString();
-      task.finished = dateFinished;
-    }
     const trans = await this.startTransaction();
     try {
+      if (finished) {
+        task.finished = new Date().toISOString();
+      }
       await trans.manager.save(task);
       await trans.commitTransaction();
       await trans.release();

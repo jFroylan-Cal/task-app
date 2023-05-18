@@ -5,12 +5,7 @@ export class SearchDto {
   @IsString()
   @Min(1)
   @IsOptional()
-  name?: string;
-
-  @IsString()
-  @Min(1)
-  @IsOptional()
-  description?: string;
+  search: string;
 
   @IsString()
   @IsOptional()
