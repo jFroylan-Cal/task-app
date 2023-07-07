@@ -1,4 +1,5 @@
-import { IsString, MinLength } from 'class-validator';
+import { IsEnum, IsString, MinLength } from 'class-validator';
+import { Status } from '../../common/enums/status.enum';
 
 export class CreateProjectDto {
   @IsString()
@@ -8,4 +9,7 @@ export class CreateProjectDto {
   @IsString()
   @MinLength(2)
   projectType: string;
+
+  @IsEnum(Status)
+  status: Status;
 }

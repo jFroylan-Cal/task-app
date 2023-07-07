@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Like, Repository } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
 import { SearchDto } from '../common/dto/search.dto';
+import { Status } from '../common/enums/status.enum';
 import { PlateGenerator } from '../common/utilities/plate.generator';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -18,10 +19,8 @@ export class TasksService {
 
   async create(createTaskDto: CreateTaskDto, user: User) {
     const { name, description, status } = createTaskDto;
-    let plate: string;
-    let dateCreated: string;
-    dateCreated = new Date().toISOString();
-    plate = PlateGenerator(name);
+    const dateCreated = new Date().toISOString();
+    const plate = PlateGenerator(name);
     const task = this.taskRepository.create({
       name: name,
       plate: plate,
@@ -103,6 +102,7 @@ export class TasksService {
     try {
       if (finished) {
         task.finished = new Date().toISOString();
+        task.status = Status.FINISHED;
       }
       await trans.manager.save(task);
       await trans.commitTransaction();
@@ -113,8 +113,9 @@ export class TasksService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} task`;
+  async remove(id: number) {
+    const task = await this.taskRepository.findOneBy({ id });
+    await this.taskRepository.remove(task);
   }
 
   async watch(id: number) {
