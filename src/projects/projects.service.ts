@@ -5,10 +5,12 @@ import { Status } from '../common/enums/status.enum';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ProjectsService {
   constructor(
+    @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     private readonly dataSource: DataSource,
   ) {}
@@ -72,7 +74,7 @@ export class ProjectsService {
       projectType,
       status,
     });
-    const trans = await this.startTransaction();
+    const trans = await this._startTransaction();
     try {
       if (status === Status.FINISHED) {
         project.status = Status.FINISHED;
@@ -92,7 +94,7 @@ export class ProjectsService {
     await this.projectRepository.remove(project);
   }
 
-  async startTransaction() {
+  private async _startTransaction() {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

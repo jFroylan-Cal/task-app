@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { User } from './entities/user.entity';
@@ -19,8 +19,10 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly dataSource: DataSource,
   ) {}
   async singIn(createUserDto: CreateUserDto) {
+    const trans = await this._startTransaction();
     try {
       const { password, email, username, lastName, name } = createUserDto;
       const user = this.userRepository.create({
@@ -30,10 +32,14 @@ export class AuthService {
         name: name,
         password: bcrypt.hashSync(password, 10),
       });
-      this.userRepository.save(user);
-      return { token: this.getJwtToken({ id: user.id }) };
+      await trans.manager.save(user);
+      await trans.commitTransaction();
+      await trans.release();
+      return { token: this._getJwtToken({ id: user.id }) };
     } catch (error) {
-      this.handleErrors(error);
+      await trans.rollbackTransaction();
+      await trans.release();
+      this._handleErrors(error);
     }
   }
 
@@ -52,14 +58,20 @@ export class AuthService {
     return true;
   }
 
-  private handleErrors(error: any) {
+  private _handleErrors(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
-
     throw new InternalServerErrorException('Check servers errors');
   }
 
-  private getJwtToken(payload: JwtPayload) {
+  private _getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;
+  }
+
+  private async _startTransaction() {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    return queryRunner;
   }
 }

@@ -27,6 +27,7 @@ export class TasksController {
   }
 
   @Get()
+  @Auth()
   async findAll(@Body() search: SearchDto) {
     const [task, total] = await this.tasksService.findTask(search);
     return { task, total };
@@ -39,16 +40,19 @@ export class TasksController {
   }
 
   @Put(':id')
+  @Auth()
   async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
     return this.tasksService.update(+id, updateTaskDto);
   }
 
   @Patch('watch/:id')
+  @Auth()
   async watch(@Param('id') id: string) {
     return this.tasksService.watch(+id);
   }
 
   @Delete(':id')
+  @Auth()
   async remove(@Param('id') id: string) {
     return this.tasksService.remove(+id);
   }
