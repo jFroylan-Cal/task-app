@@ -34,7 +34,7 @@ export class User {
   @Column({ name: 'User_strRol', type: 'text', array: true, default: ['user'] })
   roles: string[];
 
-  @OneToMany(() => Task, (task) => task.user, {cascade: true, nullable: true})
+  @OneToMany(() => Task, (task) => task.user, { cascade: true, nullable: true })
   tasks: Task[];
 
   @BeforeInsert()

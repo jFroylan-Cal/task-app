@@ -28,8 +28,14 @@ export class TasksController {
 
   @Get()
   @Auth()
-  async findAll(@Body() search: SearchDto) {
-    const [task, total] = await this.tasksService.findTask(search);
+  async findAll(@GetUser() user: User) {
+    const [task, total] = await this.tasksService.findAll(user);
+    return { task, total };
+  }
+
+  @Get()
+  async findByTerm(@Body() search: SearchDto, @GetUser() user: User) {
+    const [task, total] = await this.tasksService.findByTerm(search, user);
     return { task, total };
   }
 

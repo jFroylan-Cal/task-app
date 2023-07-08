@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Like, Repository } from 'typeorm';
+import { DataSource, Equal, Repository } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
 import { SearchDto } from '../common/dto/search.dto';
 import { Status } from '../common/enums/status.enum';
@@ -8,6 +8,7 @@ import { PlateGenerator } from '../common/utilities/plate.generator';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
+import { ITask } from './dto/response-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -33,61 +34,37 @@ export class TasksService {
     return task;
   }
 
-  findOne(id: number) {
-    return this.taskRepository.findBy({ id });
+  async findOne(id: number) {
+    const task = await this.taskRepository.findOneBy({ id });
+    const response: ITask = {
+      id: task.id,
+      name: task.name,
+      description: task.description,
+      created: task.created,
+      finished: task.finished,
+      watched: task.watched,
+      status: task.status,
+      plate: task.plate,
+      user: {
+        id: task.user.id,
+        userName: task.user.userName,
+        name: task.user.name,
+        lastName: task.user.lastName,
+      },
+    };
+    return response;
+  }
+  async findByTerm(search: SearchDto, user: User) {
+    const task = await this.taskRepository.findAndCount();
+    return task;
   }
 
-  async findTask(searchDto: SearchDto) {
-    const { search, created, finished, status, watched } = searchDto;
-    if (search) {
-      const task = await this.taskRepository.findAndCount({
-        where: [
-          {
-            name: Like(`%${search}%`),
-          },
-          {
-            description: Like(`%${search}%`),
-          },
-        ],
-      });
-      return task;
-    }
-
-    if (created) {
-      const task = await this.taskRepository.findAndCount({
-        where: {
-          created: created,
-        },
-      });
-      return task;
-    }
-
-    if (finished) {
-      const task = await this.taskRepository.findAndCount({
-        where: {
-          finished: finished,
-        },
-      });
-      return task;
-    }
-
-    if (status) {
-      const task = await this.taskRepository.findAndCount({
-        where: {
-          status: status,
-        },
-      });
-      return task;
-    }
-
-    if (watched) {
-      const task = await this.taskRepository.findAndCount({
-        where: {
-          watched: true,
-        },
-      });
-      return task;
-    }
+  async findAll(user: User) {
+    const tasks = await this.taskRepository.findAndCount({
+      order: { id: { direction: 'ASC' } },
+      where: { user: Equal(user.id) },
+    });
+    return tasks;
   }
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {

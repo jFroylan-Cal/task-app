@@ -1,31 +1,38 @@
-import { IsBoolean, IsEnum, IsOptional, IsString, Matches, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  Matches,
+  Min,
+} from 'class-validator';
 import { Status } from '../enums/status.enum';
 
 export class SearchDto {
   @IsString()
   @Min(1)
   @IsOptional()
-  search: string;
+  search?: string;
 
   @IsString()
   @IsOptional()
   @Matches(/^(\d{1,2})[/](\d{1,2})[/](\d{3,4})$/, {
     message: 'The date must have dd/mm/yyyy pattern',
   })
-  created: string;
+  created?: string;
 
   @IsString()
   @IsOptional()
   @Matches(/^(\d{1,2})[/](\d{1,2})[/](\d{3,4})$/, {
     message: 'The date must have dd/mm/yyyy pattern',
   })
-  finished: string;
+  finished?: string;
 
   @IsOptional()
   @IsEnum(Status)
-  status: Status;
+  status?: Status;
 
   @IsOptional()
   @IsBoolean()
-  watched: boolean;
+  watched?: boolean;
 }
