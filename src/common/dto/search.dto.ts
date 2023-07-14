@@ -16,15 +16,15 @@ export class SearchDto {
 
   @IsString()
   @IsOptional()
-  @Matches(/^(\d{1,2})[/](\d{1,2})[/](\d{3,4})$/, {
-    message: 'The date must have dd/mm/yyyy pattern',
+  @Matches(/^(\d{3,4})[/](\d{1,2})[/](\d{1,2})$/, {
+    message: 'The date must have yyyy/mm/dd pattern',
   })
   created?: string;
 
   @IsString()
   @IsOptional()
-  @Matches(/^(\d{1,2})[/](\d{1,2})[/](\d{3,4})$/, {
-    message: 'The date must have dd/mm/yyyy pattern',
+  @Matches(/^(\d{3,4})[/](\d{1,2})[/](\d{1,2})$/, {
+    message: 'The date must have yyyy/mm/dd pattern',
   })
   finished?: string;
 

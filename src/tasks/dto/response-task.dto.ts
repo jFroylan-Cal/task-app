@@ -1,9 +1,5 @@
 import { Status } from '../../common/enums/status.enum';
 
-export interface IResponseTaskDto {
-  tasks: ITask[];
-}
-
 export interface ITask {
   id: number;
   name: string;
@@ -13,12 +9,4 @@ export interface ITask {
   status: Status;
   watched: boolean;
   plate: string;
-  user: IUser;
-}
-
-export interface IUser {
-  id: string;
-  userName: string;
-  name: string;
-  lastName: string;
 }
