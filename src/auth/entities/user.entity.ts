@@ -6,6 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Project } from '../../projects/entities/project.entity';
 import { Task } from '../../tasks/entities/task.entity';
 
 @Entity({ name: 'Users' })
@@ -36,6 +37,12 @@ export class User {
 
   @OneToMany(() => Task, (task) => task.user, { cascade: true, nullable: true })
   tasks: Task[];
+
+  @OneToMany(() => Project, (project) => project.user, {
+    cascade: true,
+    nullable: true,
+  })
+  projects: Project[];
 
   @BeforeInsert()
   checkFieldBeforeInsert() {

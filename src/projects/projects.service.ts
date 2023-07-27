@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Like, Repository } from 'typeorm';
+import { DataSource, Equal, Like, Repository } from 'typeorm';
 import { SearchDto } from '../common/dto/search.dto';
 import { Status } from '../common/enums/status.enum';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../auth/entities/user.entity';
+import { IProject } from './interfaces/response-project.interface';
 
 @Injectable()
 export class ProjectsService {
@@ -14,7 +16,7 @@ export class ProjectsService {
     private readonly projectRepository: Repository<Project>,
     private readonly dataSource: DataSource,
   ) {}
-  async create(createProjectDto: CreateProjectDto) {
+  async create(createProjectDto: CreateProjectDto, user: User) {
     const { name, projectType, status } = createProjectDto;
     const createdDate = new Date().toISOString();
     const project = this.projectRepository.create({
@@ -22,48 +24,72 @@ export class ProjectsService {
       projectType: projectType,
       created: createdDate,
       status: status,
+      user: user,
     });
     await this.projectRepository.save(project);
     return project;
   }
 
-  async findProjects(searchDto: SearchDto) {
-    const { search, created, status } = searchDto;
+  async findProjects(searchDto: SearchDto, user: User) {
+    const { search, created, status, updated } = searchDto;
+    const entityName = 'Projects';
+    const queryRunner = await this.dataSource.createQueryBuilder(
+      Project,
+      entityName,
+    );
+    queryRunner.where(`${entityName}.user = :user`, { user: user.id });
     if (search) {
-      const project = await this.projectRepository.findAndCount({
-        where: [
-          {
-            name: Like(`%${search}%`),
-          },
-          {
-            projectType: Like(`%${search}%`),
-          },
-        ],
+      queryRunner.andWhere(`(${entityName}.name like :name`, {
+        name: `%${search}%`,
       });
-      return project;
+      queryRunner.orWhere(`${entityName}.projectType like :projectType)`, {
+        projectType: `%${search}%`,
+      });
     }
-
     if (created) {
-      const project = await this.projectRepository.findAndCount({
-        where: {
-          created: created,
-        },
+      const dateCreated = this._validateDates(created);
+      queryRunner.andWhere(`${entityName}.created = :created`, {
+        created: dateCreated,
       });
-      return project;
+    }
+    if (status) {
+      queryRunner.andWhere(`${entityName}.status = :status`, {
+        status: status,
+      });
+    }
+    if (updated) {
+      const dateUpdated = this._validateDates(updated);
+      queryRunner.andWhere(`${entityName}.updated = :updated`, {
+        updated: dateUpdated,
+      });
     }
 
-    if (status) {
-      const project = await this.projectRepository.findAndCount({
-        where: {
-          status: status,
-        },
-      });
-      return project;
-    }
+    const projects = await queryRunner.getMany();
+    const response = this._transformResponse(projects);
+    return response;
   }
 
-  findOne(id: number) {
-    return this.projectRepository.findBy({ id });
+  async findOne(id: number) {
+    const project = await this.projectRepository.findOneBy({ id });
+    const response: IProject = {
+      id: project.id,
+      name: project.name,
+      projectType: project.projectType,
+      created: project.created,
+      status: project.status,
+      updated: project.updated ? project.created : '',
+      finished: project.finished ? project.created : '',
+    };
+    return response;
+  }
+
+  async findAll(user: User) {
+    const projects = await this.projectRepository.find({
+      order: { id: { direction: 'ASC' } },
+      where: { user: Equal(user.id) },
+    });
+    const response = await this._transformResponse(projects);
+    return response;
   }
 
   async update(id: number, updateProjectDto: UpdateProjectDto) {
@@ -99,5 +125,29 @@ export class ProjectsService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     return queryRunner;
+  }
+
+  private async _validateDates(date: string) {
+    const validDate = await date.replace(/\//g, '-');
+    return validDate;
+  }
+
+  private async _transformResponse(projectsOrm: Project[]) {
+    const projectsComplete = projectsOrm;
+    const projects = [];
+    const total = projectsOrm.length;
+    projectsComplete.forEach((project) => {
+      const projectPlain: IProject = {
+        id: project.id,
+        name: project.name,
+        projectType: project.projectType,
+        created: project.created,
+        finished: project.finished,
+        updated: project.updated,
+        status: project.status,
+      };
+      projects.push(projectPlain);
+    });
+    return { projects, total };
   }
 }

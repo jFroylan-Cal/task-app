@@ -6,7 +6,7 @@ import { SearchDto } from '../common/dto/search.dto';
 import { Status } from '../common/enums/status.enum';
 import { PlateGenerator } from '../common/utilities/plate.generator';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { ITask } from './dto/response-task.dto';
+import { ITask } from './interfaces/response-task.interface';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 
@@ -98,8 +98,8 @@ export class TasksService {
       order: { id: { direction: 'ASC' } },
       where: { user: Equal(user.id) },
     });
-    const taskPlain = await this._transformResponse(tasks);
-    return taskPlain;
+    const response = await this._transformResponse(tasks);
+    return response;
   }
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {

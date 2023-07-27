@@ -28,6 +28,13 @@ export class SearchDto {
   })
   finished?: string;
 
+  @IsString()
+  @IsOptional()
+  @Matches(/^(\d{3,4})[/](\d{1,2})[/](\d{1,2})$/, {
+    message: 'The date must have yyyy/mm/dd pattern',
+  })
+  updated?: string;
+
   @IsOptional()
   @IsEnum(Status)
   status?: Status;
