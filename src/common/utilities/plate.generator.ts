@@ -11,6 +11,6 @@ function deleteVocals(originalName: string) {
 }
 
 function deleteSpace(text: string) {
-  let cleanText = text.replace(/\s+/g, '');
+  const cleanText = text.replace(/\s+/g, '');
   return cleanText;
 }
