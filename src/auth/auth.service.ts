@@ -23,6 +23,7 @@ export class AuthService {
   ) {}
   async singIn(createUserDto: CreateUserDto) {
     const trans = await this._startTransaction();
+
     try {
       const { password, email, username, lastName, name } = createUserDto;
       const user = this.userRepository.create({
@@ -32,6 +33,7 @@ export class AuthService {
         name: name,
         password: bcrypt.hashSync(password, 10),
       });
+
       await trans.manager.save(user);
       await trans.commitTransaction();
       await trans.release();
@@ -47,14 +49,21 @@ export class AuthService {
     const { email, password } = loginUserDto;
     const user = await this.userRepository.findOne({
       where: { email },
-      select: { id: true, password: true },
+      select: { id: true, password: true, isActive: true },
     });
+
     if (!user) {
       throw new UnauthorizedException('Credentials are not valid');
     }
+
     if (!bcrypt.compareSync(password, user.password)) {
       throw new UnauthorizedException('Password are not valid');
     }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('User inactive talk to an administrator');
+    }
+
     return { token: this._getJwtToken({ id: user.id }) };
   }
 

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  UnauthorizedException,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
@@ -34,12 +35,15 @@ export class UserRoleGuard implements CanActivate {
       throw new BadRequestException('User not found');
     }
 
+    if (!user.isActive) {
+      throw new UnauthorizedException('User inactive talk to an administrator');
+    }
+
     for (const role of user.roles) {
       if (validRoles.includes(role)) {
         return true;
       }
     }
-
     throw new ForbiddenException(`User ${user.userName} need a valid role`);
   }
 }
