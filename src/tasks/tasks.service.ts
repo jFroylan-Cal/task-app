@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
@@ -51,7 +51,7 @@ export class TasksService {
   async findByTerm(searchDto: SearchDto, user: User) {
     const entityName = 'Tasks';
     const { watched, search, status, created, finished } = searchDto;
-    const queryRunner = await this.dataSource.createQueryBuilder(
+    const queryRunner = this.dataSource.createQueryBuilder(
       Task,
       entityName,
     );
@@ -125,7 +125,8 @@ export class TasksService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number, user: User) {
+    this._validateUserHierarchy(user);
     const task = await this.taskRepository.findOneBy({ id });
     await this.taskRepository.remove(task);
   }
@@ -174,5 +175,10 @@ export class TasksService {
       tasks.push(taskPlain);
     });
     return { tasks, total };
+  }
+  private async _validateUserHierarchy(user:User) {
+    if (user.roles.includes('user')) {
+      throw new UnauthorizedException('Users can not execute this action');
+    }
   }
 }

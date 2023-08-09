@@ -58,7 +58,7 @@ export class TasksController {
 
   @Delete(':id')
   @Auth()
-  async remove(@Param('id') id: string) {
-    return this.tasksService.remove(+id);
+  async remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.tasksService.remove(+id, user);
   }
 }
